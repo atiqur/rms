@@ -11,32 +11,47 @@ const ClientSchema = new mongoose.Schema({
   vertical: {
     type: String
   },
-  contactno: {
-    type: Number
+  clientcontactno: {
+    type: [Number]
   },
-  email: {
+  clientemail: {
+    type: String,
+    required: true
+  },
+  logo: {
     type: String
+  },
+  date: {
+    type: Date,
+    default: Date.now
   },
   address: [
     {
       line1: {
-        type: String
+        type: String,
+        required: true
       },
       line2: {
         type: String
       },
-      city: {
+      line3: {
         type: String
       },
+      city: {
+        type: String,
+        required: true
+      },
       state: {
-        type: String
+        type: String,
+        required: true
       },
       country: {
         type: String,
         default: 'India'
       },
       pin: {
-        type: Number
+        type: Number,
+        required: true
       },
       gstin: {
         type: String
@@ -65,14 +80,7 @@ const ClientSchema = new mongoose.Schema({
         required: true
       }
     }
-  ],
-  logo: {
-    type: String
-  },
-  date: {
-    type: Date,
-    default: Date.now
-  }
+  ]
 });
 
 module.exports = Client = mongoose.model('client', ClientSchema);

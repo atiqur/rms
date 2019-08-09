@@ -149,6 +149,29 @@ router.put('/:client_id', async (req, res) => {
   }
 });
 
+// @route       DELETE api/clients/:client_id
+// @desc        Delete client by ID
+// @access      Private
+router.delete('/:client_id', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    await Client.findByIdAndRemove(req.params.id);
+
+    return res.json({ msg: 'Client deleted' });
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'Client does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route       PUT api/clients/:client_id/address
 // @desc        Add client address
 // @access      Private
@@ -416,7 +439,7 @@ router.put('/:client_id/:contactperson_id', async (req, res) => {
 });
 
 // @route       DELETE api/clients/contact/:client_id/:contactperson_id
-// @desc        DELETE client contact person by ID
+// @desc        Delete client contact person by ID
 // @access      Private
 router.delete('/contact/:client_id/:contactperson_id', async (req, res) => {
   try {
@@ -452,29 +475,6 @@ router.delete('/contact/:client_id/:contactperson_id', async (req, res) => {
       return res
         .status(400)
         .json({ msg: 'Client or Candidate does not exits' });
-    }
-    res.status(500).send('Server Error');
-  }
-});
-
-// @route       DELETE api/clients/:client_id
-// @desc        DELETE client by ID
-// @access      Private
-router.delete('/:client_id', async (req, res) => {
-  try {
-    const client = await Client.findById(req.params.client_id);
-
-    if (!client) {
-      return res.status(400).json({ msg: 'Client does not exists.' });
-    }
-
-    await Client.findByIdAndRemove(req.params.id);
-
-    return res.json({ msg: 'Client deleted' });
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind == 'ObjectId') {
-      return res.status(400).json({ msg: 'Client does not exits' });
     }
     res.status(500).send('Server Error');
   }

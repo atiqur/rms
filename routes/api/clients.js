@@ -390,6 +390,48 @@ router.put('/:client_id/:contactperson_id', async (req, res) => {
   }
 });
 
+// @route       DELETE api/clients/contact/:client_id/:contactperson_id
+// @desc        DELETE client contact person by ID
+// @access      Private
+router.delete('/contact/:client_id/:contactperson_id', async (req, res) => {
+  try {
+    // Find the client
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    // Find the contact person in the client
+    const contactperson = client.contactperson.find(
+      contactperson => contactperson.id === req.params.contactperson_id
+    );
+
+    if (!contactperson) {
+      return res.status(404).json({ msg: 'Contact person not found.' });
+    }
+
+    // Get remove index
+    const removeIndex = client.contactperson
+      .map(item => item._id)
+      .indexOf(req.params.contactperson_id);
+
+    client.contactperson.splice(removeIndex, 1);
+
+    await client.save();
+
+    res.json(client);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res
+        .status(400)
+        .json({ msg: 'Client or Candidate does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route       DELETE api/clients/:client_id
 // @desc        DELETE client by ID
 // @access      Private

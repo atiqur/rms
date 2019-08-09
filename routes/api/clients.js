@@ -172,11 +172,11 @@ router.delete('/:client_id', async (req, res) => {
   }
 });
 
-// @route       PUT api/clients/:client_id/address
+// @route       PUT api/clients/address/:client_id
 // @desc        Add client address
 // @access      Private
 router.put(
-  '/:client_id/address',
+  '/address/:client_id',
   [
     check('line1', 'Line 1 is required')
       .not()
@@ -234,10 +234,61 @@ router.put(
   }
 );
 
-// @route       DELETE api/clients/:client_id/:address_id
+// @route       GET api/clients/address/:client_id
+// @desc        Get all addresses of a client
+// @access      Private
+router.get('/address/:client_id', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    res.json(client.address);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'Client does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       GET api/clients/address/:client_id/:address_id
+// @desc        Get all addresses of a client
+// @access      Private
+router.get('/address/:client_id/:address_id', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    // Pull out address
+    const address = client.address.find(
+      address => address.id === req.params.address_id
+    );
+
+    if (!address) {
+      return res.status(404).json({ msg: 'Address not found' });
+    }
+
+    res.json(address);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'Client does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       DELETE api/clients/address/:client_id/:address_id
 // @desc        Delete client address by ID
 // @access      Private
-router.delete('/:client_id/:address_id', async (req, res) => {
+router.delete('/address/:client_id/:address_id', async (req, res) => {
   try {
     const client = await Client.findById(req.params.client_id);
 

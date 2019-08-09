@@ -312,59 +312,73 @@ router.put(
 router.put('/:client_id/:contactperson_id', async (req, res) => {
   const { firstname, lastname, designation, contactno, email } = req.body;
 
+  // Update and save
   try {
+    // Find the client
     let client = await Client.findById(req.params.client_id);
-
-    // console.log(client);
 
     if (!client) {
       return res.status(400).json({ msg: 'Client does not exists.' });
     }
 
+    // Find the contact person in the client
     const contactperson = client.contactperson.find(
       contactperson => contactperson.id === req.params.contactperson_id
     );
-
-    console.log(contactperson);
 
     if (!contactperson) {
       return res.status(404).json({ msg: 'Contact person not found.' });
     }
 
     const clientContactPerson = {};
-    // clientContactPerson._id = req.params.contactperson_id;
 
-    if (firstname) clientContactPerson.firstname = firstname;
-    if (lastname) clientContactPerson.lastname = lastname;
-    if (designation) clientContactPerson.designation = designation;
-    if (contactno) clientContactPerson.contactno = contactno;
-    if (email) clientContactPerson.email = email;
+    if (firstname) {
+      clientContactPerson.firstname = firstname;
+    } else {
+      clientContactPerson.firstname = contactperson.firstname;
+    }
+    if (lastname) {
+      clientContactPerson.lastname = lastname;
+    } else {
+      clientContactPerson.lastname = contactperson.lastname;
+    }
+    if (designation) {
+      clientContactPerson.designation = designation;
+    } else {
+      clientContactPerson.designation = contactperson.designation;
+    }
+    if (contactno) {
+      clientContactPerson.contactno = contactperson.contactno.concat(contactno);
+    } else {
+      clientContactPerson.contactno = contactperson.contactno;
+    }
+    if (email) {
+      clientContactPerson.email = contactperson.email.concat(email);
+    } else {
+      clientContactPerson.email = contactperson.email;
+    }
 
-    console.log(clientContactPerson);
-    // var filter = client.contactperson_id;
+    // TODO Find an elegant way to update information of contact person
 
-    // Get remove index
-    const contactPersonIndex = client.contactperson
-      .map(item => item._id)
-      .indexOf(req.params.contactperson_id);
-
-    // TODO Update information of contact person
-    client.contactperson = await Client.findOneAndUpdate(
+    client = await Client.findOneAndUpdate(
       {
-        _id: req.params.client_id
+        'contactperson._id': req.params.contactperson_id
       },
       {
         $set: {
-          'contactperson.$[element]': clientContactPerson
+          'contactperson.$.firstname': clientContactPerson.firstname,
+          'contactperson.$.lastname': clientContactPerson.lastname,
+          'contactperson.$.designation': clientContactPerson.designation,
+          'contactperson.$.contactno': clientContactPerson.contactno,
+          'contactperson.$.email': clientContactPerson.email
         }
       },
       {
-        arrayFilters: [{ element: contactPersonIndex }]
-      },
-      { new: true }
+        new: true
+      }
     );
 
-    return res.json(client.contactperson);
+    return res.json(client);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
@@ -372,7 +386,7 @@ router.put('/:client_id/:contactperson_id', async (req, res) => {
         .status(400)
         .json({ msg: 'Client or Contact Person does not exits' });
     }
-    res.status(500).send('Server Error');
+    res.status(500).send(err);
   }
 });
 

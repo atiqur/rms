@@ -72,8 +72,13 @@ router.post(
 // @desc        Get all client
 // @access      Private
 router.get('/', async (req, res) => {
-  const client = await Client.find();
-  res.json(client);
+  try {
+    const client = await Client.find();
+    res.json(client);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
 });
 
 // @route       GET api/clients/:client_id
@@ -236,6 +241,26 @@ router.delete('/:client_id/:address_id', async (req, res) => {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
       return res.status(400).json({ msg: 'Client or Address does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       GET api/clients/:client_id/contactperson
+// @desc        Get all client contact person
+// @access      Private
+router.get('/:client_id/contactperson', async (req, res) => {
+  try {
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(404).json({ msg: 'Client not found' });
+    }
+    res.json(client.contactperson);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'Client does not exits' });
     }
     res.status(500).send('Server Error');
   }

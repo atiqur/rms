@@ -256,7 +256,7 @@ router.get('/address/:client_id', async (req, res) => {
 });
 
 // @route       GET api/clients/address/:client_id/:address_id
-// @desc        Get all addresses of a client
+// @desc        Get addresses of a client by ID
 // @access      Private
 router.get('/address/:client_id/:address_id', async (req, res) => {
   try {
@@ -280,6 +280,102 @@ router.get('/address/:client_id/:address_id', async (req, res) => {
     console.error(err.message);
     if (err.kind == 'ObjectId') {
       return res.status(400).json({ msg: 'Client does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       PUT api/clients/address/:client_id/:address_id
+// @desc        Update addresses of a client by ID
+// @access      Private
+router.put('/address/:client_id/:address_id', async (req, res) => {
+  const { line1, line2, line3, city, state, pin, country, gstin } = req.body;
+
+  try {
+    let client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    // Pull out address
+    const address = client.address.find(
+      address => address.id === req.params.address_id
+    );
+
+    if (!address) {
+      return res.status(404).json({ msg: 'Address not found' });
+    }
+
+    const clientAddress = {};
+
+    if (line1) {
+      clientAddress.line1 = line1;
+    } else {
+      clientAddress.line1 = address.line1;
+    }
+    if (line2) {
+      clientAddress.line2 = line2;
+    } else {
+      clientAddress.line2 = address.line2;
+    }
+    if (line3) {
+      clientAddress.line3 = line3;
+    } else {
+      clientAddress.line3 = address.line3;
+    }
+    if (city) {
+      clientAddress.city = city;
+    } else {
+      clientAddress.city = address.city;
+    }
+    if (state) {
+      clientAddress.state = state;
+    } else {
+      clientAddress.state = address.state;
+    }
+    if (country) {
+      clientAddress.country = country;
+    } else {
+      clientAddress.country = address.country;
+    }
+    if (pin) {
+      clientAddress.pin = pin;
+    } else {
+      clientAddress.pin = address.pin;
+    }
+    if (gstin) {
+      clientAddress.gstin = gstin;
+    } else {
+      clientAddress.gstin = address.gstin;
+    }
+
+    client = await Client.findOneAndUpdate(
+      {
+        'address._id': req.params.address_id
+      },
+      {
+        $set: {
+          'address.$.line1': clientAddress.line1,
+          'address.$.line2': clientAddress.line2,
+          'address.$.line3': clientAddress.line3,
+          'address.$.city': clientAddress.city,
+          'address.$.state': clientAddress.state,
+          'address.$.country': clientAddress.country,
+          'address.$.pin': clientAddress.pin,
+          'address.$.gstin': clientAddress.gstin
+        }
+      },
+      {
+        new: true
+      }
+    );
+
+    return res.json(client.address);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'Client or Address does not exits' });
     }
     res.status(500).send('Server Error');
   }

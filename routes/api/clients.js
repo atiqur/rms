@@ -416,10 +416,10 @@ router.delete('/address/:client_id/:address_id', async (req, res) => {
   }
 });
 
-// @route       GET api/clients/:client_id/contactperson
+// @route       GET api/clients/contactperson/:client_id
 // @desc        Get all client contact person
 // @access      Private
-router.get('/:client_id/contactperson', async (req, res) => {
+router.get('/contactperson/:client_id', async (req, res) => {
   try {
     const client = await Client.findById(req.params.client_id);
 
@@ -436,11 +436,44 @@ router.get('/:client_id/contactperson', async (req, res) => {
   }
 });
 
-// @route       PUT api/clients/:client_id/contactperson
+// @route       GET api/clients/contactperson/:client_id/:contactperson_id
+// @desc        Get client contact person by ID
+// @access      Private
+router.get('/contactperson/:client_id/:contactperson_id', async (req, res) => {
+  try {
+    // Find the client
+    const client = await Client.findById(req.params.client_id);
+
+    if (!client) {
+      return res.status(400).json({ msg: 'Client does not exists.' });
+    }
+
+    // Find the contact person in the client
+    const contactperson = client.contactperson.find(
+      contactperson => contactperson.id === req.params.contactperson_id
+    );
+
+    if (!contactperson) {
+      return res.status(404).json({ msg: 'Contact person not found.' });
+    }
+
+    res.json(contactperson);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res
+        .status(400)
+        .json({ msg: 'Client or Contact Person does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       PUT api/clients/contactperson/:client_id
 // @desc        Add client contact person
 // @access      Private
 router.put(
-  '/:client_id/contactperson',
+  '/contactperson/:client_id',
   [
     check('firstname', 'Firstname is required')
       .not()
@@ -501,10 +534,10 @@ router.put(
   }
 );
 
-// @route       PUT api/clients/:client_id/:contactperson_id
+// @route       PUT api/clients/contactperson/:client_id/:contactperson_id
 // @desc        Update client contact person
 // @access      Private
-router.put('/:client_id/:contactperson_id', async (req, res) => {
+router.put('/contactperson/:client_id/:contactperson_id', async (req, res) => {
   const { firstname, lastname, designation, contactno, email } = req.body;
 
   // Update and save
@@ -585,46 +618,49 @@ router.put('/:client_id/:contactperson_id', async (req, res) => {
   }
 });
 
-// @route       DELETE api/clients/contact/:client_id/:contactperson_id
+// @route       DELETE api/clients/contactperson/:client_id/:contactperson_id
 // @desc        Delete client contact person by ID
 // @access      Private
-router.delete('/contact/:client_id/:contactperson_id', async (req, res) => {
-  try {
-    // Find the client
-    const client = await Client.findById(req.params.client_id);
+router.delete(
+  '/contactperson/:client_id/:contactperson_id',
+  async (req, res) => {
+    try {
+      // Find the client
+      const client = await Client.findById(req.params.client_id);
 
-    if (!client) {
-      return res.status(400).json({ msg: 'Client does not exists.' });
+      if (!client) {
+        return res.status(400).json({ msg: 'Client does not exists.' });
+      }
+
+      // Find the contact person in the client
+      const contactperson = client.contactperson.find(
+        contactperson => contactperson.id === req.params.contactperson_id
+      );
+
+      if (!contactperson) {
+        return res.status(404).json({ msg: 'Contact person not found.' });
+      }
+
+      // Get remove index
+      const removeIndex = client.contactperson
+        .map(item => item._id)
+        .indexOf(req.params.contactperson_id);
+
+      client.contactperson.splice(removeIndex, 1);
+
+      await client.save();
+
+      res.json(client);
+    } catch (err) {
+      console.error(err.message);
+      if (err.kind == 'ObjectId') {
+        return res
+          .status(400)
+          .json({ msg: 'Client or Candidate does not exits' });
+      }
+      res.status(500).send('Server Error');
     }
-
-    // Find the contact person in the client
-    const contactperson = client.contactperson.find(
-      contactperson => contactperson.id === req.params.contactperson_id
-    );
-
-    if (!contactperson) {
-      return res.status(404).json({ msg: 'Contact person not found.' });
-    }
-
-    // Get remove index
-    const removeIndex = client.contactperson
-      .map(item => item._id)
-      .indexOf(req.params.contactperson_id);
-
-    client.contactperson.splice(removeIndex, 1);
-
-    await client.save();
-
-    res.json(client);
-  } catch (err) {
-    console.error(err.message);
-    if (err.kind == 'ObjectId') {
-      return res
-        .status(400)
-        .json({ msg: 'Client or Candidate does not exits' });
-    }
-    res.status(500).send('Server Error');
   }
-});
+);
 
 module.exports = router;

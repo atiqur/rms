@@ -126,6 +126,7 @@ router.put('/:client_id', async (req, res) => {
     const clientProfile = {};
     clientProfile._id = req.params.client_id;
 
+    // TODO replace if-else with a more classy solution
     if (name) clientProfile.name = name;
     if (division) clientProfile.division = division;
     if (vertical) clientProfile.vertical = vertical;
@@ -139,6 +140,7 @@ router.put('/:client_id', async (req, res) => {
     } else {
       clientProfile.clientcontactno = client.clientcontactno;
     }
+    // TODO refactor with a simpler solution
     if (clientemail && client.clientemail.includes(clientemail)) {
       console.log('Email already exists');
       clientProfile.clientemail = client.clientemail;

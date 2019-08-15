@@ -15,7 +15,7 @@ const ClientSchema = new mongoose.Schema({
     type: [Number]
   },
   clientemail: {
-    type: String,
+    type: [String],
     required: true
   },
   logo: {

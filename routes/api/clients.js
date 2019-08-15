@@ -129,8 +129,24 @@ router.put('/:client_id', async (req, res) => {
     if (name) clientProfile.name = name;
     if (division) clientProfile.division = division;
     if (vertical) clientProfile.vertical = vertical;
-    if (clientcontactno) clientProfile.clientcontactno = clientcontactno;
-    if (clientemail) clientProfile.clientemail = clientemail;
+    if (clientcontactno && client.clientcontactno.includes(clientcontactno)) {
+      console.log('Contact Number already exists');
+      clientProfile.clientcontactno = client.clientcontactno;
+    } else if (clientcontactno) {
+      clientProfile.clientcontactno = client.clientcontactno.concat(
+        clientcontactno
+      );
+    } else {
+      clientProfile.clientcontactno = client.clientcontactno;
+    }
+    if (clientemail && client.clientemail.includes(clientemail)) {
+      console.log('Email already exists');
+      clientProfile.clientemail = client.clientemail;
+    } else if (clientemail) {
+      clientProfile.clientemail = client.clientemail.concat(clientemail);
+    } else {
+      clientProfile.clientemail = client.clientemail;
+    }
     if (logo) clientProfile.logo = logo;
 
     client = await Client.findOneAndUpdate(
@@ -560,6 +576,8 @@ router.put('/contactperson/:client_id/:contactperson_id', async (req, res) => {
 
     const clientContactPerson = {};
 
+    clientContactPerson._id = contactperson._id;
+
     if (firstname) {
       clientContactPerson.firstname = firstname;
     } else {
@@ -575,12 +593,16 @@ router.put('/contactperson/:client_id/:contactperson_id', async (req, res) => {
     } else {
       clientContactPerson.designation = contactperson.designation;
     }
-    if (contactno) {
+    if (contactno && contactperson.contactno.includes(contactno)) {
+      clientContactPerson.contactno = contactperson.contactno;
+    } else if (contactno) {
       clientContactPerson.contactno = contactperson.contactno.concat(contactno);
     } else {
       clientContactPerson.contactno = contactperson.contactno;
     }
-    if (email) {
+    if (email && contactperson.email.includes(email)) {
+      clientContactPerson.email = contactperson.email;
+    } else if (email) {
       clientContactPerson.email = contactperson.email.concat(email);
     } else {
       clientContactPerson.email = contactperson.email;
@@ -594,11 +616,7 @@ router.put('/contactperson/:client_id/:contactperson_id', async (req, res) => {
       },
       {
         $set: {
-          'contactperson.$.firstname': clientContactPerson.firstname,
-          'contactperson.$.lastname': clientContactPerson.lastname,
-          'contactperson.$.designation': clientContactPerson.designation,
-          'contactperson.$.contactno': clientContactPerson.contactno,
-          'contactperson.$.email': clientContactPerson.email
+          'contactperson.$': clientContactPerson
         }
       },
       {
@@ -606,7 +624,7 @@ router.put('/contactperson/:client_id/:contactperson_id', async (req, res) => {
       }
     );
 
-    return res.json(client);
+    return res.json(client.contactperson);
   } catch (err) {
     console.error(err.message);
     if (err.kind == 'ObjectId') {

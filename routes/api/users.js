@@ -114,6 +114,53 @@ router.get('/:user_id', async (req, res) => {
   }
 });
 
+// @route       PUT api/users/:user_id
+// @desc        Update user by ID
+// @access      Private
+router.put('/:user_id', async (req, res) => {
+  const { firstname, lastname, email, usertype, password, avatar } = req.body;
+
+  try {
+    let user = await User.findById(req.params.user_id).select('-password');
+
+    if (!user) {
+      return res.status(400).json({ msg: 'User does not exists.' });
+    }
+
+    const userFields = {};
+    userFields._id = req.params.user_id;
+
+    // TODO replace if-else with a more classy solution
+    if (firstname) userFields.firstname = firstname;
+    if (lastname) userFields.lastname = lastname;
+    if (email) userFields.email = email;
+    if (usertype && user.usertype.includes(usertype)) {
+      console.log('Already a user of same type');
+      userFields.usertype = user.usertype;
+    } else if (usertype) {
+      userFields.usertype = user.usertype.concat(usertype);
+    } else {
+      userFields.usertype = user.usertype;
+    }
+    if (password) userFields.password = password;
+    if (avatar) userFields.avatar = avatar;
+
+    user = await User.findOneAndUpdate(
+      { _id: req.params.user_id },
+      { $set: userFields },
+      { new: true }
+    );
+
+    return res.json('User updated');
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'User does not exits' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
+
 // @route       DELETE api/users
 // @desc        DELETE user by ID
 // @access      Private

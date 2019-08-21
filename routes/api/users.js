@@ -80,4 +80,31 @@ router.post(
   }
 );
 
+// @route       GET api/users
+// @desc        Get all user
+// @access      Private
+router.get('/', async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route       DELETE api/users
+// @desc        DELETE user by ID
+// @access      Private
+router.delete('/', async (req, res) => {
+  try {
+    await User.findByIdAndRemove({ _id: req.body.id });
+
+    res.json('User deleted');
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json('Server Error');
+  }
+});
+
 module.exports = router;

@@ -18,6 +18,7 @@ app.use('/api/mandates', require('./routes/api/mandates'));
 app.use('/api/candidates', require('./routes/api/candidates'));
 app.use('/api/interviews', require('./routes/api/interviews'));
 app.use('/api/joinings', require('./routes/api/joinings'));
+app.use('/api/users', require('./routes/api/users'));
 
 const PORT = process.env.PORT || 5000;
 

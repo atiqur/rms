@@ -93,6 +93,27 @@ router.get('/', async (req, res) => {
   }
 });
 
+// @route       GET api/users/:user_id
+// @desc        Get user by id
+// @access      Private
+router.get('/:user_id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.user_id);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User does not exist.' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == 'ObjectId') {
+      return res.status(400).json({ msg: 'User does not exits' });
+    }
+    res.status(500).send('ServerError');
+  }
+});
+
 // @route       DELETE api/users
 // @desc        DELETE user by ID
 // @access      Private
